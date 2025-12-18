@@ -20,7 +20,11 @@ with open('filmy.csv', mode='r',encoding='UTF-8') as file:
     
 
 def Wyswietl():
-    print("wyswietla")
+    nowe_okno_1 = Tk()
+    nowe_okno_1.title("Wyświetlanie Filmów")
+    nowe_okno_1.geometry("1000x700")
+    nowe_okno_1.configure(background="gray25")
+    info = Label(nowe_okno_1, text=("\n".join(str.split(repr(data_list)))), font=('Helvetica',1), fg="gray47", background="gray17").pack()
 
 def Wyjscie():
     app.quit()
