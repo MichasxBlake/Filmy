@@ -4,7 +4,16 @@ import csv
 #główne ustawenia
 app = Tk()
 app.title = ("Filmy")
-app.geometry("1400x1000")
+w = 1400
+h = 1000
+
+ws = app.winfo_screenwidth() 
+hs = app.winfo_screenheight() 
+
+x = (ws/2) - (w/2)
+y = (hs/2) - (h/2)
+
+app.geometry('%dx%d+%d+%d' % (w, h, x, y))
 app.configure(background="gray17")
 
 #działania
@@ -20,14 +29,30 @@ with open('filmy.csv', mode='r',encoding='UTF-8') as file:
     
 
 def Wyswietl():
+    a= 0
+    b= 0
+
     nowe_okno_1 = Tk()
     nowe_okno_1.title("Wyświetlanie Filmów")
-    nowe_okno_1.geometry("1000x700")
+    nowe_okno_1.geometry('%dx%d+%d+%d' % (w, h, x, y))
     nowe_okno_1.configure(background="gray25")
-    info = Label(nowe_okno_1, text=("\n".join(str.split(repr(data_list)))), font=('Helvetica',1), fg="gray47", background="gray17").pack()
+
+    a = 0
+    for j in data_list[a]:
+        a += 1
+        head = Label(nowe_okno_1, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a)
+    for i in data_list:
+        b += 1
+        a = 0
+        for j in i:
+            a += 1
+            info = Label(nowe_okno_1, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background="gray17", width=27, height=2,).grid(row=b, column=a)
+            
 
 def Wyjscie():
     app.quit()
+
+
 
 
 #ustawienia wyglądu

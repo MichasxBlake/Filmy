@@ -1,22 +1,19 @@
+# Source - https://stackoverflow.com/a
+# Posted by martineau, modified by community. See post 'Timeline' for change history
+# Retrieved 2025-12-18, License - CC BY-SA 4.0
+
 from tkinter import *
-from tkinter.ttk import *
 
-# Create the main window
-master = Tk()
-master.geometry("300x200")  # Set window size
-master.title("Main Window")
+window = Tk()
 
-# Function to open a new window
-def open_new_window():
-    new_window = Toplevel(master)  # Create a new window
-    new_window.title("New Window")
-    new_window.geometry("250x150")  
+rows = []
+for i in range(5):
+    cols = []
+    for j in range(4):
+        e = Entry(relief=GROOVE)
+        e.grid(row=i, column=j, sticky=NSEW)
+        e.insert(END, '%d.%d' % (i, j))
+        cols.append(e)
+    rows.append(cols)
 
-    Label(new_window, text="This is a new window").pack(pady=20)
-
-# Create a label and a button to open the new window
-Label(master, text="This is the main window").pack(pady=10)
-Button(master, text="Open New Window", command=open_new_window).pack(pady=10)
-
-# Run the Tkinter event loop
-master.mainloop()
+window.mainloop()
