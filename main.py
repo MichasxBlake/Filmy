@@ -1,14 +1,15 @@
 from tkinter import *
 import csv
 
-#główne ustawenia
+
+#główne ustawienia początkowe głównego okna
 app = Tk()
 app.title = ("Filmy")
 w = 1400
 h = 1000
 
-ws = app.winfo_screenwidth() 
-hs = app.winfo_screenheight() 
+ws = app.winfo_screenwidth()
+hs = app.winfo_screenheight()
 
 x = (ws/2) - (w/2)
 y = (hs/2) - (h/2)
@@ -19,13 +20,24 @@ app.configure(background="gray17")
 #działania
 
 with open('filmy.csv', mode='r',encoding='UTF-8') as file:
-    csv_reader = csv.DictReader(file)  # Create DictReader
+    csv_reader = csv.DictReader(file)  
 
-    data_list = []  # List to store dictionaries
+    data_list = []  # Main lista filmów
     for row in csv_reader:
         data_list.append(row)
 
+file.close()
+
 #print(data_list[1]['Tytuł'])
+
+def aktorzy(aktorzy, tytul):
+    nowe_okno_2 = Tk()
+    nowe_okno_2.title(f"Aktorzy - {tytul}")
+    nowe_okno_2.geometry('%dx%d+%d+%d' % (400, 300, x, y))
+    nowe_okno_2.configure(background="gray25")
+
+    label_tytul = Label(nowe_okno_2, text=(f"Aktorzy - {tytul}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=50, height=1,).pack()
+    label_aktorzy = Label(nowe_okno_2, text=(f"{aktorzy}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=50, height=15,).pack()
     
 
 def Wyswietl():
@@ -37,16 +49,47 @@ def Wyswietl():
     nowe_okno_1.geometry('%dx%d+%d+%d' % (w, h, x, y))
     nowe_okno_1.configure(background="gray25")
 
+    frame = Frame(nowe_okno_1)
+    frame.grid(row=0, column=0, sticky="nsew")
+
+    canvas = Canvas(frame)
+    scrollbar = Scrollbar(frame, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    content_frame = Frame(canvas)
+
+    content_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+
+
     a = 0
     for j in data_list[a]:
         a += 1
-        head = Label(nowe_okno_1, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a)
+        head = Label(content_frame, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a, sticky="nsew")
     for i in data_list:
         b += 1
         a = 0
         for j in i:
             a += 1
-            info = Label(nowe_okno_1, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background="gray17", width=27, height=2,).grid(row=b, column=a)
+            if j == 'Aktorzy':
+                more =Button(content_frame, text="Więcej", font=('Helvetica',9), fg="gray47", background="gray17", width=10, height=2, command=lambda i=i: aktorzy(i['Aktorzy'], i['Tytuł'])).grid(row=b, column=a, sticky="nsew")
+            else:
+                info = Label(content_frame, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background="gray17", width=27, height=2,).grid(row=b, column=a, sticky="nsew")
+
+    nowe_okno_1.columnconfigure(0, weight=1)
+    nowe_okno_1.rowconfigure(0, weight=1)
+    frame.columnconfigure(0, weight=1)
+    frame.rowconfigure(0, weight=1)
+
+    canvas.create_window((0, 0), window=content_frame, anchor="nw")
+    canvas.grid(row=0, column=0, sticky="nsew")
+    scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
             
 
 def Wyjscie():
