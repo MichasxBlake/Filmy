@@ -17,6 +17,9 @@ hs = app.winfo_screenheight()
 x = (ws/2) - (w/2)
 y = (hs/2) - (h/2)
 
+
+ilosc_nowych = 0
+
 app.geometry('%dx%d+%d+%d' % (w, h, x, y))
 app.configure(background=f"{main_color}")
 
@@ -28,15 +31,22 @@ with open('filmy.csv', mode='r',encoding='UTF-8') as file:
     data_list = []  # Main lista filmów
     for row in csv_reader:
         data_list.append(row)
+    for d in data_list:
+        if d['Aktorzy']:
+            d['Aktorzy'] = d['Aktorzy'].split('; ')
+        if d['Reżyser']:
+            d['Reżyser'] = d['Reżyser'].split('; ')
 
 file.close()
 
 #print(data_list[1]['Tytuł'])
     
 
-def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None):
+def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
     a= 0
     b= 0
+
+    powtorka = False
 
     nowe_okno_1 = Toplevel(app)
     nowe_okno_1.title("Wyświetlanie Filmów")
@@ -56,8 +66,41 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None):
 
     if sortuj_po:
         data_list.sort(key=lambda x: x[sortuj_po])
+
+    # wersja dla aktorów    
     if filtruj_po:
-        expectedResult = [d for d in data_list if d[filtruj_po] in filtr]
+        if filtruj_po == "Aktorzy":
+            for d in data_list:
+                for actor in d['Aktorzy']:
+                    if actor == filtr:
+                        if 'expectedResult' not in locals():
+                            expectedResult = []
+                        expectedResult.append(d)
+                    elif 'expectedResult' not in locals():
+                        expectedResult = []
+
+        else:
+            if filtruj_po != "Reżyser":
+                expectedResult = [d for d in data_list if d[filtruj_po] in filtr]
+                powtorka = True
+
+
+    #wersja dla reżyserów
+    if filtruj_po:
+        if filtruj_po == "Reżyser":
+                for d in data_list:
+                    for director in d['Reżyser']:
+                        if director == filtr:
+                            if 'expectedResult' not in locals():
+                                expectedResult = []
+                            expectedResult.append(d)
+                        elif 'expectedResult' not in locals():
+                            expectedResult = []
+
+        else:
+            if powtorka == True:
+                print(filtruj_po, filtr)
+                expectedResult = [d for d in data_list if d[filtruj_po] in filtr]
         
 
     if filtruj_po:
@@ -66,9 +109,14 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None):
         end_data_list = data_list
 
     a = 0
-    for j in end_data_list[a]:
-        a += 1
-        head = Label(content_frame, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a, sticky="nsew")
+
+    try:
+        for j in end_data_list[a]:
+            a += 1
+            head1 = Label(content_frame, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a, sticky="nsew")
+    except IndexError:
+        head2 = Label(content_frame, text=("Brak wyników do wyświetlenia"), font=('Helvetica',40,'bold'), fg="gray47", background="gray17", width=44, height=12,).grid(row=1, column=1, sticky="nsew")
+    
     for i in end_data_list:
         b += 1
         a = 0
@@ -120,9 +168,10 @@ def Sortuj():
     liczba = Button(nowe_okno_3, text="Liczba Ocen", width=12, height=1, command=lambda : Wyswietl("Liczba Ocen")).grid(row=1, column=6)
     
 
-def Filtruj():
+def Filtruj(czy_usuwanie=False):
     def on_button(filtruj_po=None, myValue=None):
-        Wyswietl(filtruj_po=filtruj_po, filtr=myValue)
+        nonlocal czy_usuwanie
+        Wyswietl(filtruj_po=filtruj_po, filtr=myValue, czy_usuwanie=czy_usuwanie)
         
 
     nowe_okno4 = Toplevel(app)
@@ -176,9 +225,65 @@ def Filtruj():
     myEntry_entry7 = Entry(nowe_okno4, textvariable=user7, width=40).grid(row=6, column=1, sticky=W, padx=10)
     button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Liczba Ocen", user7.get())).grid(row=6, column=2, sticky=W,padx=30)
 
+
+def Dodawaj():
+    nowe_okno_5 = Toplevel(app)
+    nowe_okno_5.title(" Dodaj Nowy Film")
+    nowe_okno_5.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
+    nowe_okno_5.configure(background=f"{main_color}")
+
+
+    def Add():
+        new_movie = {
+            'Tytuł': new_title.get(),
+            'Reżyser': new_director.get(),
+            'Aktorzy': new_actors.get(),
+            'Rok wydania': new_year.get(),
+            'Gatunek': new_tag.get(),
+            'Średnia Ocena': '0',
+            'Liczba Ocen': '0'
+        }
+        data_list.append(new_movie)
+        global ilosc_nowych
+        ilosc_nowych += 1
+        nowe_okno_5.destroy()
+
+    #pure text
+
+    gora2 = Label(nowe_okno_5, text="Dodaj Nowy Film:", font=('Helvetica',15,'bold'), fg="gray47", background=f"{main_color}", width=55, height=2,).grid(row=0, column=0, columnspan=7)
+    gora3 = Label(nowe_okno_5, text="Tytuł:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=9, column=0)
+    gora3 = Label(nowe_okno_5, text="Reżyser:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=10, column=0)
+    gora3 = Label(nowe_okno_5, text="Aktorzy:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=11, column=0)
+    gora3 = Label(nowe_okno_5, text="Rok Wydania:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=12, column=0)
+    gora3 = Label(nowe_okno_5, text="Gatunek:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=13, column=0)
+    new_title = StringVar()
+    new_director = StringVar()
+    new_actors = StringVar()
+    new_year = StringVar()
+    new_tag = StringVar()
+    nowy_tytul = Entry(nowe_okno_5, textvariable=new_title, width=40).grid(row=9, column=1, sticky=W, padx=1)
+    nowy_rezyser = Entry(nowe_okno_5, textvariable=new_director, width=40).grid(row=10, column=1, sticky=W, padx=1)
+    nowy_actorzy = Entry(nowe_okno_5, textvariable=new_actors, width=40).grid(row=11, column=1, sticky=W, padx=1)
+    nowy_rok = Entry(nowe_okno_5, textvariable=new_year, width=40).grid(row=12, column=1, sticky=W, padx=1)
+    nowy_gatunek = Entry(nowe_okno_5, textvariable=new_tag, width=40).grid(row=13, column=1, sticky=W, padx=1)
+    button1 = Button(nowe_okno_5, text="Dodaj", command=Add, width=10, height=4, background="dim gray").grid(row=20, column=1, sticky=W, padx=80)
+
+def Usuwanie():
+
+    Filtruj(czy_usuwanie=True)
+
             
 
 def Wyjscie():
+
+    global ilosc_nowych
+    if ilosc_nowych > 0:
+        for new_movie in data_list[-ilosc_nowych:]:
+            with open('filmy.csv', mode='a', encoding='UTF-8', newline='') as file:
+                fieldnames = ['Tytuł', 'Reżyser', 'Aktorzy', 'Rok wydania', 'Gatunek', 'Średnia Ocena', 'Liczba Ocen']
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writerow(new_movie)
+            file.close()
     app.quit()
 
 
@@ -191,8 +296,8 @@ wyswietlanie = Label(app, textvariable=data_list)
 show_button = Button(app, text="Wyświetl Wszystkie Filmy", width=40, height=6, command=Wyswietl)
 sort_button = Button(app, text="Sortuj po:", width=40, height=6, command=Sortuj)
 filtr_button = Button(app, text="Filtruj po:", width=40, height=6, command=Filtruj)
-add_button = Button(app, text="Dodaj nowy film", width=40, height=6, command=Wyswietl)
-delate_button = Button(app, text="Usuń film", width=40, height=6, command=Wyswietl)
+add_button = Button(app, text="Dodaj nowy film", width=40, height=6, command=Dodawaj)
+delate_button = Button(app, text="Usuń film", width=40, height=6, command=Usuwanie)
 edit_button = Button(app, text="Edytuj Film", width=40, height=6, command=Wyswietl)
 quit_button = Button(app, text="Wyjdź", width=40, height=6, command=Wyjscie)
 

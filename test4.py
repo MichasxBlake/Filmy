@@ -1,7 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-
-# Step 2: Create the Tkinter Window
 root = tk.Tk()
 root.title("Scrollable Grid Example")
 root.geometry("720x250")

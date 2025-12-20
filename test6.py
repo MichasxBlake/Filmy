@@ -6,20 +6,6 @@ import csv
 app = Tk()
 app.title = ("Filmy")
 
-main_color = "gray17"
-
-w = 1400
-h = 1000
-
-ws = app.winfo_screenwidth()
-hs = app.winfo_screenheight()
-
-x = (ws/2) - (w/2)
-y = (hs/2) - (h/2)
-
-app.geometry('%dx%d+%d+%d' % (w, h, x, y))
-app.configure(background=f"{main_color}")
-
             
 
 def Wyjscie():
