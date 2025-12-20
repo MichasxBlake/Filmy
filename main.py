@@ -44,7 +44,7 @@ file.close()
 #print(data_list[1]['Tytuł'])
     
 
-def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
+def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, czy_edycja=False, czy_ocena=False):
     a= 0
     b= 0
     
@@ -54,6 +54,16 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
     if czy_usuwanie:
         nowe_okno_1 = Toplevel(app)
         nowe_okno_1.title("Usuwanie Filmów")
+        nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
+        nowe_okno_1.configure(background=f"{main_color}")
+    elif czy_edycja:
+        nowe_okno_1 = Toplevel(app)
+        nowe_okno_1.title("Edycja Filmów")
+        nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
+        nowe_okno_1.configure(background=f"{main_color}")
+    elif czy_ocena:
+        nowe_okno_1 = Toplevel(app)
+        nowe_okno_1.title("Ocenianie Filmów")
         nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
         nowe_okno_1.configure(background=f"{main_color}")
     else:
@@ -141,6 +151,10 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
                 info = Label(content_frame, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=27, height=2).grid(row=b, column=a, sticky="nsew")
         if czy_usuwanie:
             delete = Button(content_frame, text="Usuń", background="dim gray", width=10, height=2, command=lambda i=i : Lokacja(i)).grid(row=b, column=a+1)
+        elif czy_edycja:
+                edit = Button(content_frame, text="Edytuj", background="dim gray", width=10, height=2, command=lambda i=i : Edycja(i)).grid(row=b, column=a+1)
+        elif czy_ocena:
+                star = Button(content_frame, text="Oceń", background="dim gray", width=10, height=2, command=lambda i=i : Ocena(i)).grid(row=b, column=a+1)
             
 
     nowe_okno_1.columnconfigure(0, weight=1)
@@ -293,11 +307,89 @@ def Usuwanie(tak= False, tytul=None):
     else:
         Filtruj(czy_usuwanie=True)
 
+def Edycja(i=None):
+    if i:
+        nowe_okno_6 = Toplevel(app)
+        nowe_okno_6.title(" Edytuj Film")
+        nowe_okno_6.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
+        nowe_okno_6.configure(background=f"{main_color}")
+
+        def Save():
+            i['Tytuł'] = edit_title.get()
+            i['Reżyser'] = edit_director.get()
+            i['Aktorzy'] = edit_actors.get()
+            i['Rok wydania'] = edit_year.get()
+            i['Gatunek'] = edit_tag.get()
+            nowe_okno_6.destroy()
+
+        #pure text
+        edit_title = StringVar(value=i['Tytuł'])
+        edit_director = StringVar(value=i['Reżyser'])
+        edit_actors = StringVar(value=i['Aktorzy'])
+        edit_year = StringVar(value=i['Rok wydania'])
+        edit_tag = StringVar(value=i['Gatunek'])
+        gora2 = Label(nowe_okno_6, text="Edytuj Film:", font=('Helvetica',15,'bold'), fg="gray47", background=f"{main_color}", width=55, height=2,).grid(row=0, column=0, columnspan=7)
+        gora3 = Label(nowe_okno_6, text="Tytuł:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=9, column=0)
+        gora4 = Label(nowe_okno_6, text="Reżyser:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=10, column=0)
+        gora5 = Label(nowe_okno_6, text="Aktorzy:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=11, column=0)
+        gora6 = Label(nowe_okno_6, text="Rok Wydania:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=12, column=0)
+        gora7 = Label(nowe_okno_6, text="Gatunek:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=13, column=0)
+        edytuj_tytul = Entry(nowe_okno_6, textvariable=edit_title, width=40).grid(row=9, column=1, sticky=W, padx=1)
+        edytuj_rezyser = Entry(nowe_okno_6, textvariable=edit_director, width=40).grid(row=10, column=1, sticky=W, padx=1)
+        edytuj_actorzy = Entry(nowe_okno_6, textvariable=edit_actors, width=40).grid(row=11, column=1, sticky=W, padx=1)
+        edytuj_rok = Entry(nowe_okno_6, textvariable=edit_year, width=40).grid(row=12, column=1, sticky=W, padx=1)
+        edytuj_gatunek = Entry(nowe_okno_6, textvariable=edit_tag, width=40).grid(row=13, column=1, sticky=W, padx=1)
+        button1 = Button(nowe_okno_6, text="Zapisz", command=Save, width=10, height=4, background="dim gray").grid(row=20, column=1, sticky=W, padx=80)
+        
+    else:
+        Wyswietl(czy_edycja=True)
+
+def Ocena(i=None):
+    if i:
+        nowe_okno_7 = Toplevel(app)
+        nowe_okno_7.title(" Oceń Film")
+        nowe_okno_7.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
+        nowe_okno_7.configure(background=f"{main_color}")
+
+        def rate(stars):
+            srednia = float(i['Średnia Ocena'])
+            liczba = int(i['Liczba Ocen'])
+
+            new_count = liczba + 1
+            new_average = ((srednia * liczba) + stars) / new_count
+            i['Średnia Ocena'] = f"{new_average:.2f}"
+            i['Liczba Ocen'] = str(new_count)
+
+            nowe_okno_7.destroy()
+
+        head = Label(nowe_okno_7, text="Oceń Film:", font=('Helvetica',15,'bold'), fg="gray47", background=f"{main_color}", width=55, height=2,).grid(row=0, column=0, columnspan=7)
+        button_1 = Button(nowe_okno_7, text="1", width=10, height=4, background="dim gray", command=lambda: rate(1)).grid(row=1, column=0, padx=10)
+        button_2 = Button(nowe_okno_7, text="2", width=10, height=4, background="dim gray", command=lambda: rate(2)).grid(row=1, column=1, padx=10)
+        button_3 = Button(nowe_okno_7, text="3", width=10, height=4, background="dim gray", command=lambda: rate(3)).grid(row=1, column=2, padx=10)
+        button_4 = Button(nowe_okno_7, text="4", width=10, height=4, background="dim gray", command=lambda: rate(4)).grid(row=1, column=3, padx=10)
+        button_5 = Button(nowe_okno_7, text="5", width=10, height=4, background="dim gray", command=lambda: rate(5)).grid(row=1, column=4, padx=10)
+        button_6 = Button(nowe_okno_7, text="6", width=10, height=4, background="dim gray", command=lambda: rate(6)).grid(row=1, column=5, padx=10)
+        button_7 = Button(nowe_okno_7, text="7", width=10, height=4, background="dim gray", command=lambda: rate(7)).grid(row=1, column=6, padx=10)
+        button_8 = Button(nowe_okno_7, text="8", width=10, height=4, background="dim gray", command=lambda: rate(8)).grid(row=2, column=0, padx=10)
+        button_9 = Button(nowe_okno_7, text="9", width=10, height=4, background="dim gray", command=lambda: rate(9)).grid(row=2, column=1, padx=10)
+        button_10 = Button(nowe_okno_7, text="10", width=10, height=4, background="dim gray", command=lambda: rate(10)).grid(row=2, column=2, padx=10)
+    else:
+        Wyswietl(czy_ocena=True)
+
             
 
 def Wyjscie():
 
-    keys = data_list[0].keys()
+    # BEFORE WRITING BACK TO CSV, CONVERT LISTS BACK TO STRINGS
+    for d in data_list:
+        # Convert list back to semicolon-separated string
+        if isinstance(d['Aktorzy'], list):
+            d['Aktorzy'] = '; '.join(d['Aktorzy'])
+        if isinstance(d['Reżyser'], list):
+            d['Reżyser'] = '; '.join(d['Reżyser'])
+
+    # Write the data back to CSV
+    keys = data_list[0].keys() if data_list else []
 
     with open('filmy.csv', 'w', newline='', encoding='UTF-8') as output_file:
         dict_writer = csv.DictWriter(output_file, keys)
@@ -317,7 +409,8 @@ sort_button = Button(app, text="Sortuj po:", width=40, height=6, command=Sortuj)
 filtr_button = Button(app, text="Filtruj po:", width=40, height=6, command=Filtruj)
 add_button = Button(app, text="Dodaj nowy film", width=40, height=6, command=Dodawaj)
 delate_button = Button(app, text="Usuń film", width=40, height=6, command=Usuwanie)
-edit_button = Button(app, text="Edytuj Film", width=40, height=6, command=Wyswietl)
+edit_button = Button(app, text="Edytuj Film", width=40, height=6, command=Edycja)
+star_button = Button(app, text="Oceń Film", width=40, height=6, command=Ocena)
 quit_button = Button(app, text="Wyjdź", width=40, height=6, command=Wyjscie)
 
 
@@ -332,6 +425,7 @@ filtr_button.pack()
 add_button.pack()
 delate_button.pack()
 edit_button.pack()
+star_button.pack()
 quit_button.pack(side=RIGHT)
 
 app.mainloop()
