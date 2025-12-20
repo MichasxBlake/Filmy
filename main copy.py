@@ -297,7 +297,16 @@ def Usuwanie(tak= False, tytul=None):
 
 def Wyjscie():
 
-    keys = data_list[0].keys()
+    # BEFORE WRITING BACK TO CSV, CONVERT LISTS BACK TO STRINGS
+    for d in data_list:
+        # Convert list back to semicolon-separated string
+        if isinstance(d['Aktorzy'], list):
+            d['Aktorzy'] = '; '.join(d['Aktorzy'])
+        if isinstance(d['Reżyser'], list):
+            d['Reżyser'] = '; '.join(d['Reżyser'])
+
+    # Write the data back to CSV
+    keys = data_list[0].keys() if data_list else []
 
     with open('filmy.csv', 'w', newline='', encoding='UTF-8') as output_file:
         dict_writer = csv.DictWriter(output_file, keys)
