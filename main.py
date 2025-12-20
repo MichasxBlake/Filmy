@@ -4,7 +4,7 @@ import csv
 
 #główne ustawienia początkowe głównego okna
 app = Tk()
-app.title = ("Filmy")
+app.title("Filmy")
 
 main_color = "gray17"
 
@@ -32,22 +32,13 @@ with open('filmy.csv', mode='r',encoding='UTF-8') as file:
 file.close()
 
 #print(data_list[1]['Tytuł'])
-
-def aktorzy(aktorzy, tytul):
-    nowe_okno_2 = Tk()
-    nowe_okno_2.title(f"Aktorzy - {tytul}")
-    nowe_okno_2.geometry('%dx%d+%d+%d' % (400, 300, (ws/2) - (400/2), (hs/2) - (300/2)))
-    nowe_okno_2.configure(background=f"{main_color}")
-
-    label_tytul = Label(nowe_okno_2, text=(f"Aktorzy - {tytul}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=1,).pack()
-    label_aktorzy = Label(nowe_okno_2, text=(f"{aktorzy}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=15,).pack()
     
 
-def Wyswietl(Sortuj_po=None, Filtruj_po=None):
+def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None):
     a= 0
     b= 0
 
-    nowe_okno_1 = Tk()
+    nowe_okno_1 = Toplevel(app)
     nowe_okno_1.title("Wyświetlanie Filmów")
     nowe_okno_1.geometry('%dx%d+%d+%d' % (w, h, x, y))
     nowe_okno_1.configure(background=f"{main_color}")
@@ -55,7 +46,7 @@ def Wyswietl(Sortuj_po=None, Filtruj_po=None):
     frame = Frame(nowe_okno_1)
     frame.grid(row=0, column=0, sticky="nsew")
 
-    canvas = Canvas(frame)
+    canvas = Canvas(frame, background=f"{main_color}")
     scrollbar = Scrollbar(frame, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
 
@@ -63,16 +54,22 @@ def Wyswietl(Sortuj_po=None, Filtruj_po=None):
 
     content_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-    if Sortuj_po:
-        data_list.sort(key=lambda x: x[Sortuj_po])
+    if sortuj_po:
+        data_list.sort(key=lambda x: x[sortuj_po])
+    if filtruj_po:
+        expectedResult = [d for d in data_list if d[filtruj_po] in filtr]
+        
 
-
+    if filtruj_po:
+        end_data_list = expectedResult
+    else:
+        end_data_list = data_list
 
     a = 0
-    for j in data_list[a]:
+    for j in end_data_list[a]:
         a += 1
         head = Label(content_frame, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a, sticky="nsew")
-    for i in data_list:
+    for i in end_data_list:
         b += 1
         a = 0
         for j in i:
@@ -96,13 +93,23 @@ def Wyswietl(Sortuj_po=None, Filtruj_po=None):
 
     canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
+    def aktorzy(aktorzy, tytul):
+        nowe_okno_2 = Toplevel(nowe_okno_1)
+        nowe_okno_2.title(f"Aktorzy - {tytul}")
+        nowe_okno_2.geometry('%dx%d+%d+%d' % (400, 300, (ws/2) - (400/2), (hs/2) - (300/2)))
+        nowe_okno_2.configure(background=f"{main_color}")
+
+        label_tytul = Label(nowe_okno_2, text=(f"Aktorzy - {tytul}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=1,).pack()
+        label_aktorzy = Label(nowe_okno_2, text=(f"{aktorzy}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=15,).pack()
+
 
 def Sortuj():
-    nowe_okno_3 = Tk()
+    nowe_okno_3 = Toplevel(app)
     nowe_okno_3.title("Sortowanie Filmów")
     nowe_okno_3.geometry('%dx%d+%d+%d' % (655, 250, (ws/2) - (400/2), (hs/2) - (300/2)))
     nowe_okno_3.configure(background=f"{main_color}")
 
+    # zrozumieć w pełni jak działają lambda w tym przypadku i innnych XD
     gora = Label(nowe_okno_3, text="Sortuj filmy po:", font=('Helvetica',15,'bold'), fg="gray47", background=f"{main_color}", width=50, height=2,).grid(row=0, column=0, columnspan=7)
     nazwa = Button(nowe_okno_3, text="Nazwa", width=12, height=1, command=lambda : Wyswietl("Tytuł")).grid(row=1, column=0)
     rezyser = Button(nowe_okno_3, text="Reżyser", width=12, height=1, command=lambda : Wyswietl("Reżyser")).grid(row=1, column=1)
@@ -112,6 +119,62 @@ def Sortuj():
     srednia = Button(nowe_okno_3, text="Średnia Ocena", width=12, height=1, command=lambda : Wyswietl("Średnia Ocena")).grid(row=1, column=5)
     liczba = Button(nowe_okno_3, text="Liczba Ocen", width=12, height=1, command=lambda : Wyswietl("Liczba Ocen")).grid(row=1, column=6)
     
+
+def Filtruj():
+    def on_button(filtruj_po=None, myValue=None):
+        Wyswietl(filtruj_po=filtruj_po, filtr=myValue)
+        
+
+    nowe_okno4 = Toplevel(app)
+    nowe_okno4.title("Sortowanie Filmów")
+    nowe_okno4.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
+    nowe_okno4.configure(background=f"{main_color}")
+
+    
+    #tytuł
+    one_label = Label(nowe_okno4, text="Tytuł:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=0, column=0, padx=10, sticky=W)
+    user1 = StringVar()
+    myEntry_entry1 = Entry(nowe_okno4, textvariable=user1, width=40).grid(row=0, column=1, sticky=W, padx=10)
+
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Tytuł", user1.get())).grid(row=0, column=2, sticky=W,padx=30)
+
+    #Reżyser
+    dwu_label = Label(nowe_okno4, text="Reżyser:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=1, column=0, padx=10, sticky=W)
+    user2 = StringVar()
+    myEntry_entry2 = Entry(nowe_okno4, textvariable=user2, width=40).grid(row=1, column=1, sticky=W, padx=10)
+
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Reżyser", user2.get())).grid(row=1, column=2, sticky=W,padx=30)
+
+    #Aktorzy
+    trzy_label = Label(nowe_okno4, text="Aktorzy:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=2, column=0, padx=10, sticky=W)
+    user3 = StringVar()
+    myEntry_entry3 = Entry(nowe_okno4, textvariable=user3, width=40).grid(row=2, column=1, sticky=W, padx=10)
+
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Aktorzy", user3.get())).grid(row=2, column=2, sticky=W,padx=30)
+
+    #Rok
+    cztery_label = Label(nowe_okno4, text="Rok Wydania:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=3, column=0, padx=10, sticky=W)
+    user4 = StringVar()
+    myEntry_entry4 = Entry(nowe_okno4, textvariable=user4, width=40).grid(row=3, column=1, sticky=W, padx=10)
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Rok wydania", user4.get())).grid(row=3, column=2, sticky=W,padx=30)
+
+    #Gatunek
+    piec_label = Label(nowe_okno4, text="Gatunek:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=4, column=0, padx=10, sticky=W)
+    user5 = StringVar()
+    myEntry_entry5 = Entry(nowe_okno4, textvariable=user5, width=40).grid(row=4, column=1, sticky=W, padx=10)
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Gatunek", user5.get())).grid(row=4, column=2, sticky=W,padx=30)
+
+    #Średnia Ocena
+    szesc_label = Label(nowe_okno4, text="Średnia Ocena:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=5, column=0, padx=10, sticky=W)
+    user6 = StringVar()
+    myEntry_entry6 = Entry(nowe_okno4, textvariable=user6, width=40).grid(row=5, column=1, sticky=W, padx=10)
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Średnia Ocena", user6.get())).grid(row=5, column=2, sticky=W,padx=30)
+
+    #Liczba Ocen
+    siedem_label = Label(nowe_okno4, text="Liczba Ocen:", font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=16, height=2,).grid(row=6, column=0, padx=10, sticky=W)
+    user7 = StringVar()
+    myEntry_entry7 = Entry(nowe_okno4, textvariable=user7, width=40).grid(row=6, column=1, sticky=W, padx=10)
+    button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Liczba Ocen", user7.get())).grid(row=6, column=2, sticky=W,padx=30)
 
             
 
@@ -127,7 +190,7 @@ wyswietlanie = Label(app, textvariable=data_list)
 
 show_button = Button(app, text="Wyświetl Wszystkie Filmy", width=40, height=6, command=Wyswietl)
 sort_button = Button(app, text="Sortuj po:", width=40, height=6, command=Sortuj)
-filtr_button = Button(app, text="Filtruj po:", width=40, height=6, command=Wyswietl)
+filtr_button = Button(app, text="Filtruj po:", width=40, height=6, command=Filtruj)
 add_button = Button(app, text="Dodaj nowy film", width=40, height=6, command=Wyswietl)
 delate_button = Button(app, text="Usuń film", width=40, height=6, command=Wyswietl)
 edit_button = Button(app, text="Edytuj Film", width=40, height=6, command=Wyswietl)
