@@ -45,13 +45,25 @@ file.close()
 def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
     a= 0
     b= 0
+    
 
     powtorka = False
 
-    nowe_okno_1 = Toplevel(app)
-    nowe_okno_1.title("Wyświetlanie Filmów")
-    nowe_okno_1.geometry('%dx%d+%d+%d' % (w, h, x, y))
-    nowe_okno_1.configure(background=f"{main_color}")
+    if czy_usuwanie:
+        nowe_okno_1 = Toplevel(app)
+        nowe_okno_1.title("Usuwanie Filmów")
+        nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
+        nowe_okno_1.configure(background=f"{main_color}")
+    else:
+        nowe_okno_1 = Toplevel(app)
+        nowe_okno_1.title("Wyświetlanie Filmów")
+        nowe_okno_1.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        nowe_okno_1.configure(background=f"{main_color}")
+
+    def Lokacja(place = None):
+        place = place['Tytuł']
+
+        Usuwanie(True, tytul=f"{place}")
 
     frame = Frame(nowe_okno_1)
     frame.grid(row=0, column=0, sticky="nsew")
@@ -99,7 +111,6 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
 
         else:
             if powtorka == True:
-                print(filtruj_po, filtr)
                 expectedResult = [d for d in data_list if d[filtruj_po] in filtr]
         
 
@@ -114,18 +125,21 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False):
         for j in end_data_list[a]:
             a += 1
             head1 = Label(content_frame, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a, sticky="nsew")
+            korekta = Label(content_frame, text=(""), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=10, height=2,).grid(row=0, column=a+1, sticky="nsew")
     except IndexError:
         head2 = Label(content_frame, text=("Brak wyników do wyświetlenia"), font=('Helvetica',40,'bold'), fg="gray47", background="gray17", width=44, height=12,).grid(row=1, column=1, sticky="nsew")
-    
     for i in end_data_list:
         b += 1
         a = 0
         for j in i:
             a += 1
             if j == 'Aktorzy':
-                more =Button(content_frame, text="Więcej", font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=10, height=2, command=lambda i=i: aktorzy(i['Aktorzy'], i['Tytuł'])).grid(row=b, column=a, sticky="nsew")
+                more = Button(content_frame, text="Więcej", font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=10, height=2, command=lambda i=i: aktorzy(i['Aktorzy'], i['Tytuł'])).grid(row=b, column=a, sticky="nsew")
             else:
                 info = Label(content_frame, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=27, height=2).grid(row=b, column=a, sticky="nsew")
+        if czy_usuwanie:
+            delete = Button(content_frame, text="Usuń", background="dim gray", width=10, height=2, command=lambda i=i : Lokacja(i)).grid(row=b, column=a+1)
+            
 
     nowe_okno_1.columnconfigure(0, weight=1)
     nowe_okno_1.rowconfigure(0, weight=1)
@@ -172,6 +186,8 @@ def Filtruj(czy_usuwanie=False):
     def on_button(filtruj_po=None, myValue=None):
         nonlocal czy_usuwanie
         Wyswietl(filtruj_po=filtruj_po, filtr=myValue, czy_usuwanie=czy_usuwanie)
+        if czy_usuwanie:
+            nowe_okno4.destroy()
         
 
     nowe_okno4 = Toplevel(app)
@@ -268,9 +284,12 @@ def Dodawaj():
     nowy_gatunek = Entry(nowe_okno_5, textvariable=new_tag, width=40).grid(row=13, column=1, sticky=W, padx=1)
     button1 = Button(nowe_okno_5, text="Dodaj", command=Add, width=10, height=4, background="dim gray").grid(row=20, column=1, sticky=W, padx=80)
 
-def Usuwanie():
+def Usuwanie(tak= False, tytul=None):
 
-    Filtruj(czy_usuwanie=True)
+    if tak:
+        data_list.remove(next(item for item in data_list if item["Tytuł"] == tytul))
+    else:
+        Filtruj(czy_usuwanie=True)
 
             
 
