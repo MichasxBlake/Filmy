@@ -1,31 +1,28 @@
+#Importy
 from tkinter import *
 import csv
 
-
-#główne ustawienia początkowe głównego okna
-app = Tk()
-app.title("Filmy")
+#zmienne
 
 main_color = "gray17"
-
-w = 1400
-h = 1000
-
-ws = app.winfo_screenwidth()
-hs = app.winfo_screenheight()
-
-x = (ws/2) - (w/2)
-y = (hs/2) - (h/2)
-
 
 ilosc_nowych = 0
 
 czy_usunieto = False
 
+#główne ustawienia początkowe głównego okna
+app = Tk()
+app.title("Filmy")
+w = 1400
+h = 1000
+ws = app.winfo_screenwidth()
+hs = app.winfo_screenheight()
+x = (ws/2) - (w/2)
+y = (hs/2) - (h/2)
 app.geometry('%dx%d+%d+%d' % (w, h, x, y))
 app.configure(background=f"{main_color}")
 
-#działania
+#Pobieranie danych z pliku
 
 with open('filmy.csv', mode='r',encoding='UTF-8') as file:
     csv_reader = csv.DictReader(file)  
@@ -33,7 +30,7 @@ with open('filmy.csv', mode='r',encoding='UTF-8') as file:
     data_list = []  # Main lista filmów
     for row in csv_reader:
         data_list.append(row)
-    for d in data_list:
+    for d in data_list:   # rozbicie bo tam jest ich kilka
         if d['Aktorzy']:
             d['Aktorzy'] = d['Aktorzy'].split('; ')
         if d['Reżyser']:
@@ -43,40 +40,43 @@ file.close()
 
 #print(data_list[1]['Tytuł'])
     
+#główna funkcja wyświetlania, na której wszystko bazuje
 
 def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, czy_edycja=False, czy_ocena=False):
+
+    #zmienne w funkcji
     a= 0
     b= 0
-    
-
     powtorka = False
+
+    #różne ustawienia dla różnych działań
 
     if czy_usuwanie:
         nowe_okno_1 = Toplevel(app)
         nowe_okno_1.title("Usuwanie Filmów")
         nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
         nowe_okno_1.configure(background=f"{main_color}")
+
     elif czy_edycja:
         nowe_okno_1 = Toplevel(app)
         nowe_okno_1.title("Edycja Filmów")
         nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
         nowe_okno_1.configure(background=f"{main_color}")
+
     elif czy_ocena:
         nowe_okno_1 = Toplevel(app)
         nowe_okno_1.title("Ocenianie Filmów")
         nowe_okno_1.geometry('%dx%d+%d+%d' % (w+200, h, x, y))
         nowe_okno_1.configure(background=f"{main_color}")
-    else:
+        
+    else: #główne okno 
         nowe_okno_1 = Toplevel(app)
         nowe_okno_1.title("Wyświetlanie Filmów")
         nowe_okno_1.geometry('%dx%d+%d+%d' % (w, h, x, y))
         nowe_okno_1.configure(background=f"{main_color}")
 
-    def Lokacja(place = None):
-        place = place['Tytuł']
 
-        Usuwanie(True, tytul=f"{place}")
-
+    #ustanienie scroll-a jak za dużo filmów
     frame = Frame(nowe_okno_1)
     frame.grid(row=0, column=0, sticky="nsew")
 
@@ -88,8 +88,27 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
 
     content_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
+    nowe_okno_1.columnconfigure(0, weight=1)
+    nowe_okno_1.rowconfigure(0, weight=1)
+    frame.columnconfigure(0, weight=1)
+    frame.rowconfigure(0, weight=1)
+
+    canvas.create_window((0, 0), window=content_frame, anchor="nw")
+    canvas.grid(row=0, column=0, sticky="nsew")
+    scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+
+    #funkcja sortowania
     if sortuj_po:
         data_list.sort(key=lambda x: x[sortuj_po])
+
+
+    #filtrowanie (podzielone na opcjie, z obu wychodzą inne też)
 
     # wersja dla aktorów    
     if filtruj_po:
@@ -124,23 +143,31 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
         else:
             if powtorka == True:
                 expectedResult = [d for d in data_list if d[filtruj_po] in filtr]
-        
 
+
+    #po filtrze końcowe ustawianie wyświetlacza
     if filtruj_po:
         end_data_list = expectedResult
     else:
         end_data_list = data_list
 
-    a = 0
+
+    #Funkcja usuwająca
+    def Lokacja(place = None):
+        place = place['Tytuł']
+
+        Usuwanie(True, tytul=f"{place}")
+
+    #główna część od wyświetlania danych (zbiera informacje do wyświetlenia)
 
     try:
-        for j in end_data_list[a]:
+        for j in end_data_list[a]: #najprostrze wyświetlanie 
             a += 1
             head1 = Label(content_frame, text=(f"{j}"), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=24, height=2,).grid(row=0, column=a, sticky="nsew")
-            korekta = Label(content_frame, text=(""), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=10, height=2,).grid(row=0, column=a+1, sticky="nsew")
+            korekta = Label(content_frame, text=(""), font=('Helvetica',10,'bold'), fg="gray47", background="gray17", width=10, height=2,).grid(row=0, column=a+1, sticky="nsew") #to przez guziki
     except IndexError:
-        head2 = Label(content_frame, text=("Brak wyników do wyświetlenia"), font=('Helvetica',40,'bold'), fg="gray47", background="gray17", width=44, height=12,).grid(row=1, column=1, sticky="nsew")
-    for i in end_data_list:
+        head2 = Label(content_frame, text=("Brak wyników do wyświetlenia"), font=('Helvetica',40,'bold'), fg="gray47", background="gray17", width=44, height=12,).grid(row=1, column=1, sticky="nsew") #jak nic nie ma
+    for i in end_data_list: #dodatek bo aktorów jest wielu
         b += 1
         a = 0
         for j in i:
@@ -149,28 +176,15 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
                 more = Button(content_frame, text="Więcej", font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=10, height=2, command=lambda i=i: aktorzy(i['Aktorzy'], i['Tytuł'])).grid(row=b, column=a, sticky="nsew")
             else:
                 info = Label(content_frame, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=27, height=2).grid(row=b, column=a, sticky="nsew")
+        # dodatkowe ustawienia dla innych działań (guziki)
         if czy_usuwanie:
             delete = Button(content_frame, text="Usuń", background="dim gray", width=10, height=2, command=lambda i=i : Lokacja(i)).grid(row=b, column=a+1)
         elif czy_edycja:
                 edit = Button(content_frame, text="Edytuj", background="dim gray", width=10, height=2, command=lambda i=i : Edycja(i)).grid(row=b, column=a+1)
         elif czy_ocena:
                 star = Button(content_frame, text="Oceń", background="dim gray", width=10, height=2, command=lambda i=i : Ocena(i)).grid(row=b, column=a+1)
-            
 
-    nowe_okno_1.columnconfigure(0, weight=1)
-    nowe_okno_1.rowconfigure(0, weight=1)
-    frame.columnconfigure(0, weight=1)
-    frame.rowconfigure(0, weight=1)
-
-    canvas.create_window((0, 0), window=content_frame, anchor="nw")
-    canvas.grid(row=0, column=0, sticky="nsew")
-    scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _on_mousewheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-    canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
+    #te okno od aktorów
     def aktorzy(aktorzy, tytul):
         nowe_okno_2 = Toplevel(nowe_okno_1)
         nowe_okno_2.title(f"Aktorzy - {tytul}")
@@ -179,9 +193,11 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
 
         label_tytul = Label(nowe_okno_2, text=(f"Aktorzy - {tytul}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=1,).pack()
         label_aktorzy = Label(nowe_okno_2, text=(f"{aktorzy}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=15,).pack()
+#Koniec wyświetlania
 
-
+#funkcja sortująca
 def Sortuj():
+    #okno
     nowe_okno_3 = Toplevel(app)
     nowe_okno_3.title("Sortowanie Filmów")
     nowe_okno_3.geometry('%dx%d+%d+%d' % (655, 250, (ws/2) - (400/2), (hs/2) - (300/2)))
@@ -197,15 +213,18 @@ def Sortuj():
     srednia = Button(nowe_okno_3, text="Średnia Ocena", width=12, height=1, command=lambda : Wyswietl("Średnia Ocena")).grid(row=1, column=5)
     liczba = Button(nowe_okno_3, text="Liczba Ocen", width=12, height=1, command=lambda : Wyswietl("Liczba Ocen")).grid(row=1, column=6)
     
-
+#funkcja filtrująca
 def Filtruj(czy_usuwanie=False):
+
+    #działanie przycisków + funkcja usuwania
     def on_button(filtruj_po=None, myValue=None):
         nonlocal czy_usuwanie
         Wyswietl(filtruj_po=filtruj_po, filtr=myValue, czy_usuwanie=czy_usuwanie)
+        #usuwanie
         if czy_usuwanie:
             nowe_okno4.destroy()
         
-
+    #ustawienia
     nowe_okno4 = Toplevel(app)
     nowe_okno4.title("Sortowanie Filmów")
     nowe_okno4.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
@@ -258,13 +277,16 @@ def Filtruj(czy_usuwanie=False):
     button1 = Button(nowe_okno4, text="Szukaj", command=lambda : on_button("Liczba Ocen", user7.get())).grid(row=6, column=2, sticky=W,padx=30)
 
 
+#funkcja dodawania
 def Dodawaj():
+
+    #okno
     nowe_okno_5 = Toplevel(app)
     nowe_okno_5.title(" Dodaj Nowy Film")
     nowe_okno_5.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
     nowe_okno_5.configure(background=f"{main_color}")
 
-
+    #funkcja
     def Add():
         new_movie = {
             'Tytuł': new_title.get(),
@@ -298,22 +320,29 @@ def Dodawaj():
     nowy_gatunek = Entry(nowe_okno_5, textvariable=new_tag, width=40).grid(row=13, column=1, sticky=W, padx=1)
     button1 = Button(nowe_okno_5, text="Dodaj", command=Add, width=10, height=4, background="dim gray").grid(row=20, column=1, sticky=W, padx=80)
 
+#funkcja usuwanie
 def Usuwanie(tak= False, tytul=None):
 
+    #końcowe działanie
     if tak:
         data_list.remove(next(item for item in data_list if item["Tytuł"] == tytul))
         global czy_usunieto
         czy_usunieto = True
+        #skok do filtra
     else:
         Filtruj(czy_usuwanie=True)
 
+#funkcja edycja
 def Edycja(i=None):
+    
+    #główne działanie
     if i:
         nowe_okno_6 = Toplevel(app)
         nowe_okno_6.title(" Edytuj Film")
         nowe_okno_6.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
         nowe_okno_6.configure(background=f"{main_color}")
 
+        #zapis
         def Save():
             i['Tytuł'] = edit_title.get()
             i['Reżyser'] = edit_director.get()
@@ -341,16 +370,22 @@ def Edycja(i=None):
         edytuj_gatunek = Entry(nowe_okno_6, textvariable=edit_tag, width=40).grid(row=13, column=1, sticky=W, padx=1)
         button1 = Button(nowe_okno_6, text="Zapisz", command=Save, width=10, height=4, background="dim gray").grid(row=20, column=1, sticky=W, padx=80)
         
+    #przechodzenie do wyświetlacza
     else:
         Wyswietl(czy_edycja=True)
 
+
+#funkcja oceniajaca
 def Ocena(i=None):
+
+    #główne działanie
     if i:
         nowe_okno_7 = Toplevel(app)
         nowe_okno_7.title(" Oceń Film")
         nowe_okno_7.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
         nowe_okno_7.configure(background=f"{main_color}")
 
+        #ustawianie i obliczanie oceny
         def rate(stars):
             srednia = float(i['Średnia Ocena'])
             liczba = int(i['Liczba Ocen'])
@@ -373,24 +408,24 @@ def Ocena(i=None):
         button_8 = Button(nowe_okno_7, text="8", width=10, height=4, background="dim gray", command=lambda: rate(8)).grid(row=2, column=0, padx=10)
         button_9 = Button(nowe_okno_7, text="9", width=10, height=4, background="dim gray", command=lambda: rate(9)).grid(row=2, column=1, padx=10)
         button_10 = Button(nowe_okno_7, text="10", width=10, height=4, background="dim gray", command=lambda: rate(10)).grid(row=2, column=2, padx=10)
+
+    #skok wyświelacz
     else:
         Wyswietl(czy_ocena=True)
 
             
-
+#koniec
 def Wyjscie():
 
-    # BEFORE WRITING BACK TO CSV, CONVERT LISTS BACK TO STRINGS
+    #przywrócienie listy do tego co było w pliku *to był koszmar*
     for d in data_list:
-        # Convert list back to semicolon-separated string
         if isinstance(d['Aktorzy'], list):
             d['Aktorzy'] = '; '.join(d['Aktorzy'])
         if isinstance(d['Reżyser'], list):
             d['Reżyser'] = '; '.join(d['Reżyser'])
 
-    # Write the data back to CSV
+    #zapis do pliku
     keys = data_list[0].keys() if data_list else []
-
     with open('filmy.csv', 'w', newline='', encoding='UTF-8') as output_file:
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
@@ -400,33 +435,20 @@ def Wyjscie():
 
 
 
-#ustawienia wyglądu
+#główny wygląd menu aplikacji
 tytul = Label(app, text="Biblioteka Filmów", font=('Helvetica',50), fg="gray47", background="gray17")
 wyswietlanie = Label(app, textvariable=data_list)
 
-show_button = Button(app, text="Wyświetl Wszystkie Filmy", width=40, height=6, command=Wyswietl)
-sort_button = Button(app, text="Sortuj po:", width=40, height=6, command=Sortuj)
-filtr_button = Button(app, text="Filtruj po:", width=40, height=6, command=Filtruj)
-add_button = Button(app, text="Dodaj nowy film", width=40, height=6, command=Dodawaj)
-delate_button = Button(app, text="Usuń film", width=40, height=6, command=Usuwanie)
-edit_button = Button(app, text="Edytuj Film", width=40, height=6, command=Edycja)
-star_button = Button(app, text="Oceń Film", width=40, height=6, command=Ocena)
-quit_button = Button(app, text="Wyjdź", width=40, height=6, command=Wyjscie)
+show_button = Button(app, text="Wyświetl Wszystkie Filmy", width=40, height=6, command=Wyswietl).pack()
+sort_button = Button(app, text="Sortuj po:", width=40, height=6, command=Sortuj).pack()
+filtr_button = Button(app, text="Filtruj po:", width=40, height=6, command=Filtruj).pack()
+add_button = Button(app, text="Dodaj nowy film", width=40, height=6, command=Dodawaj).pack()
+delate_button = Button(app, text="Usuń film", width=40, height=6, command=Usuwanie).pack()
+edit_button = Button(app, text="Edytuj Film", width=40, height=6, command=Edycja).pack()
+star_button = Button(app, text="Oceń Film", width=40, height=6, command=Ocena).pack()
+quit_button = Button(app, text="Wyjdź", width=40, height=6, command=Wyjscie).pack(side=RIGHT)
 
 
-
-
-
-#wyświetlanie
-tytul.pack()
-show_button.pack()
-sort_button.pack()
-filtr_button.pack()
-add_button.pack()
-delate_button.pack()
-edit_button.pack()
-star_button.pack()
-quit_button.pack(side=RIGHT)
-
+#Start aplikacji
 app.mainloop()
 
