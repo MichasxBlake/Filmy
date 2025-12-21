@@ -105,7 +105,10 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
 
     #funkcja sortowania
     if sortuj_po:
-        data_list.sort(key=lambda x: x[sortuj_po])
+        if sortuj_po == "Aktorzy" or sortuj_po == "Reżyser":
+            data_list.sort(key=lambda x: x[sortuj_po][0] if x[sortuj_po] else "")
+        else:
+            data_list.sort(key=lambda x: x[sortuj_po])
 
 
     #filtrowanie (podzielone na opcjie, z obu wychodzą inne też)
@@ -175,7 +178,13 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
             if j == 'Aktorzy':
                 more = Button(content_frame, text="Więcej", font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=10, height=2, command=lambda i=i: aktorzy(i['Aktorzy'], i['Tytuł'])).grid(row=b, column=a, sticky="nsew")
             else:
-                info = Label(content_frame, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=27, height=2).grid(row=b, column=a, sticky="nsew")
+                if i[j] == i["Reżyser"]:
+                    lista_rezyserow = ""
+                    for name in i["Reżyser"]:
+                        lista_rezyserow += f"{name} "
+                        info = Label(content_frame, text=(f"{lista_rezyserow}"), font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=27, height=2).grid(row=b, column=a, sticky="nsew")
+                else:
+                    info = Label(content_frame, text=(f"{i[j]}"), font=('Helvetica',9), fg="gray47", background=f"{main_color}", width=27, height=2).grid(row=b, column=a, sticky="nsew")
         # dodatkowe ustawienia dla innych działań (guziki)
         if czy_usuwanie:
             delete = Button(content_frame, text="Usuń", background="dim gray", width=10, height=2, command=lambda i=i : Lokacja(i)).grid(row=b, column=a+1)
@@ -186,13 +195,18 @@ def Wyswietl(sortuj_po=None, filtruj_po=None, filtr=None, czy_usuwanie=False, cz
 
     #te okno od aktorów
     def aktorzy(aktorzy, tytul):
+
         nowe_okno_2 = Toplevel(nowe_okno_1)
         nowe_okno_2.title(f"Aktorzy - {tytul}")
         nowe_okno_2.geometry('%dx%d+%d+%d' % (400, 300, (ws/2) - (400/2), (hs/2) - (300/2)))
         nowe_okno_2.configure(background=f"{main_color}")
 
+        lista_aktorow = ""
+
         label_tytul = Label(nowe_okno_2, text=(f"Aktorzy - {tytul}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=1,).pack()
-        label_aktorzy = Label(nowe_okno_2, text=(f"{aktorzy}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=15,).pack()
+        for aktor in aktorzy:
+            lista_aktorow += f"{aktor} "
+        label_aktorzy = Label(nowe_okno_2, text=(f"{lista_aktorow}"), font=('Helvetica',10,'bold'), fg="gray47", background=f"{main_color}", width=50, height=15,).pack()
 #Koniec wyświetlania
 
 #funkcja sortująca
@@ -288,10 +302,26 @@ def Dodawaj():
 
     #funkcja
     def Add():
+        nowe_okno_6 = Toplevel(app)
+        nowe_okno_6.title(" Dodaj Aktorów i Reżyserów")
+        nowe_okno_6.geometry('%dx%d+%d+%d' % (655, 350, (ws/2) - (400/2), (hs/2) - (300/2)))
+        nowe_okno_6.configure(background=f"{main_color}")
+        lista_rezyserow = []
+        lista_aktorow = []
+        for i in range(int(new_director.get())):
+            director_name = StringVar()
+            gora3 = Label(nowe_okno_6, text=(f"Podaj nazwisko reżysera {i+1}:"), font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=i, column=0)
+            nowy_rezyser = Entry(nowe_okno_6, textvariable=director_name, width=40).grid(row=i, column=1, sticky=W, padx=1)
+            donee = Button(nowe_okno_6, text="Dodaj Reżysera", command=lambda director_name=director_name: lista_rezyserow.append(director_name.get())).grid(row=i, column=2, sticky=W, padx=10)
+        for j in range(int(new_actors.get())):
+            actor_name = StringVar()
+            gora4 = Label(nowe_okno_6, text=(f"Podaj nazwisko aktora {j+1}:"), font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=j+int(new_director.get())+1, column=0)
+            nowy_aktor = Entry(nowe_okno_6, textvariable=actor_name, width=40).grid(row=j+int(new_director.get())+1, column=1, sticky=W, padx=1)
+            donee2 = Button(nowe_okno_6, text="Dodaj Aktora", command=lambda actor_name=actor_name: lista_aktorow.append(actor_name.get())).grid(row=j+int(new_director.get())+1, column=2, sticky=W, padx=10)
         new_movie = {
             'Tytuł': new_title.get(),
-            'Reżyser': new_director.get(),
-            'Aktorzy': new_actors.get(),
+            'Reżyser': lista_rezyserow,
+            'Aktorzy': lista_aktorow,
             'Rok wydania': new_year.get(),
             'Gatunek': new_tag.get(),
             'Średnia Ocena': '0',
@@ -304,13 +334,13 @@ def Dodawaj():
 
     gora2 = Label(nowe_okno_5, text="Dodaj Nowy Film:", font=('Helvetica',15,'bold'), fg="gray47", background=f"{main_color}", width=55, height=2,).grid(row=0, column=0, columnspan=7)
     gora3 = Label(nowe_okno_5, text="Tytuł:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=9, column=0)
-    gora3 = Label(nowe_okno_5, text="Reżyser:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=10, column=0)
-    gora3 = Label(nowe_okno_5, text="Aktorzy:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=11, column=0)
+    gora3 = Label(nowe_okno_5, text="Podaj liczbę reżyserów:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=10, column=0)
+    gora3 = Label(nowe_okno_5, text="Podaj liczbę aktorów:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=11, column=0)
     gora3 = Label(nowe_okno_5, text="Rok Wydania:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=12, column=0)
     gora3 = Label(nowe_okno_5, text="Gatunek:", font=('Helvetica',11,'bold'), fg="gray47", background=f"{main_color}", width=0, height=2,).grid(row=13, column=0)
     new_title = StringVar()
-    new_director = StringVar()
-    new_actors = StringVar()
+    new_director = IntVar()
+    new_actors = IntVar()
     new_year = StringVar()
     new_tag = StringVar()
     nowy_tytul = Entry(nowe_okno_5, textvariable=new_title, width=40).grid(row=9, column=1, sticky=W, padx=1)
@@ -451,4 +481,3 @@ quit_button = Button(app, text="Wyjdź", width=40, height=6, command=Wyjscie).pa
 
 #Start aplikacji
 app.mainloop()
-
